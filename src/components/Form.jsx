@@ -23,18 +23,9 @@ const Form = () => {
     }));
   };
   const validateForm = () => {
-    // Basic validation
-    const {
-      fullName,
-      rollNo,
-      studentNo,
-      email,
-      gender,
-      branch,
-      year,
-      hackerRankId,
-    } = formData;
-
+    console.log(formData); // Debugging: Log the form data
+    const { fullName, rollNo, studentNo, email, gender, branch, year, hackerRankId } = formData;
+  
     if (
       !fullName ||
       !rollNo ||
@@ -48,24 +39,38 @@ const Form = () => {
       setResponseMessage("All fields are required.");
       return false;
     }
-
+  
     if (!/^[a-zA-Z\s]+$/.test(fullName)) {
       setResponseMessage("Full Name can only contain letters and spaces.");
       return false;
     }
-
+  
     if (!/^\d+$/.test(rollNo) || !/^\d+$/.test(studentNo)) {
       setResponseMessage("Roll No and Student No must be numbers.");
       return false;
     }
-
-    if (!/^[a-zA-Z0-9._%+-]+@akgec\.ac\.in$/.test(email)) {
-      setResponseMessage("Email must be in the format abc@akgec.ac.in.");
+  
+    // Update the regex to match the format abc123@akgec.ac.in
+    const emailPattern = /^[a-zA-Z0-9]+@akgec\.ac\.in$/;
+    if (!emailPattern.test(email)) {
+      setResponseMessage("Please enter a valid AKGEC college email ID in the format abc123@akgec.ac.in.");
       return false;
     }
-
+  
     return true;
   };
+  
+
+  <input
+  type="text"
+  name="hackerRankId" // Corrected name
+  value={formData.hackerRankId} // Corrected value binding
+  onChange={handleChange}
+  required
+  placeholder="Enter your HackerID"
+  className="w-full p-1 border-2 border-blue-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+/>
+
 
   const sanitizeData = (data) => {
     const sanitizedData = {};
@@ -77,21 +82,24 @@ const Form = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-
+  
+    // Debug: Check form data before submitting
+    console.log(formData);
+  
     if (!validateForm()) return;
-
+  
     setIsSubmitting(true);
     setResponseMessage("");
-
+  
     try {
       const sanitizedData = sanitizeData(formData);
-
-      const response = await fetch(" daal diyo bhai ", {
+  
+      const response = await fetch("YOUR_API_ENDPOINT", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(sanitizedData),
       });
-
+  
       const result = await response.json();
       if (response.ok) {
         setResponseMessage(result.message || "Registration successful!");
@@ -115,6 +123,7 @@ const Form = () => {
       setIsSubmitting(false);
     }
   };
+  
   return (
     <div className="flex flex-col lg:flex-row h-screen">
       {/* Left Section */}
@@ -194,21 +203,22 @@ const Form = () => {
 
           {/* Email */}
           <div className="mb-4">
-            <label className="block font-medium mb-2" style={{ color: "#236397" }}>
-              Email <span className="text-red-500">*</span>
-            </label>
-            <input
-              type="email"
-              name="email"
-              value={formData.email}
-              onChange={handleChange}
-              required
-              pattern="^[a-zA-Z0-9._%+-]+@akgec\.ac\.in$"
-              title="Email must be in the format abc@akgec.ac.in"
-              placeholder="abc@akgec.ac.in"
-              className="w-full p-1 border-2 border-blue-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
-            />
-          </div>
+  <label className="block font-medium mb-2" style={{ color: "#236397" }}>
+    Email <span className="text-red-500">*</span>
+  </label>
+  <input
+    type="email"
+    name="email"
+    value={formData.email}
+    onChange={handleChange}
+    required
+    pattern="^[a-zA-Z0-9]+@akgec\.ac\.in$"
+    title="Email must be in the format abc123@akgec.ac.in"
+    placeholder="abc123@akgec.ac.in"
+    className="w-full p-1 border-2 border-blue-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+  />
+</div>
+
 
           {/* Gender */}
           <div className="mb-4">
@@ -307,7 +317,7 @@ const Form = () => {
             <input
               type="text"
               name="hackerid"
-              value={formData.hackerid}
+              defaultValue={formData.hackerRankId}
               onChange={handleChange}
               required
               placeholder="Enter your HackerID"
