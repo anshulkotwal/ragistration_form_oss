@@ -1,5 +1,4 @@
 import React, { useState } from "react";
-// import "animate.css"; 
 
 const Form = () => {
   const [formData, setFormData] = useState({
@@ -14,24 +13,88 @@ const Form = () => {
   });
 
   const [responseMessage, setResponseMessage] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
 
   const handleChange = (e) => {
-    setFormData({ ...formData, [e.target.name]: e.target.value });
+    const { name, value } = e.target;
+    setFormData((prevState) => ({
+      ...prevState,
+      [name]: value.trimStart(), 
+    }));
+  };
+  const validateForm = () => {
+    // Basic validation
+    const {
+      fullName,
+      rollNo,
+      studentNo,
+      email,
+      gender,
+      branch,
+      year,
+      hackerRankId,
+    } = formData;
+
+    if (
+      !fullName ||
+      !rollNo ||
+      !studentNo ||
+      !email ||
+      !gender ||
+      !branch ||
+      !year ||
+      !hackerRankId
+    ) {
+      setResponseMessage("All fields are required.");
+      return false;
+    }
+
+    if (!/^[a-zA-Z\s]+$/.test(fullName)) {
+      setResponseMessage("Full Name can only contain letters and spaces.");
+      return false;
+    }
+
+    if (!/^\d+$/.test(rollNo) || !/^\d+$/.test(studentNo)) {
+      setResponseMessage("Roll No and Student No must be numbers.");
+      return false;
+    }
+
+    if (!/^[a-zA-Z0-9._%+-]+@akgec\.ac\.in$/.test(email)) {
+      setResponseMessage("Email must be in the format abc@akgec.ac.in.");
+      return false;
+    }
+
+    return true;
+  };
+
+  const sanitizeData = (data) => {
+    const sanitizedData = {};
+    for (const key in data) {
+      sanitizedData[key] = data[key].replace(/</g, "&lt;").replace(/>/g, "&gt;");
+    }
+    return sanitizedData;
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
+    if (!validateForm()) return;
+
+    setIsSubmitting(true);
+    setResponseMessage("");
+
     try {
-      const response = await fetch("http://localhost:5000/register", {
+      const sanitizedData = sanitizeData(formData);
+
+      const response = await fetch(" daal diyo bhai ", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(sanitizedData),
       });
 
       const result = await response.json();
       if (response.ok) {
-        setResponseMessage(result.message);
+        setResponseMessage(result.message || "Registration successful!");
         setFormData({
           fullName: "",
           rollNo: "",
@@ -48,30 +111,35 @@ const Form = () => {
     } catch (error) {
       console.error("Error:", error);
       setResponseMessage("An error occurred. Please try again later.");
+    } finally {
+      setIsSubmitting(false);
     }
   };
-
   return (
-    <div className="flex flex-col lg:flex-row h-screen bg-gradient-to-r from-blue-100 to-white animate__animated animate__fadeIn">
+    <div className="flex flex-col lg:flex-row h-screen">
       {/* Left Section */}
-      <div className="flex flex-col items-center justify-center bg-gradient-to-r from-blue-200 to-blue-50 w-full lg:w-1/2 p-8 animate__animated animate__fadeInLeft">
-        <h1 className="text-5xl font-bold text-blue-600 mb-6 shadow-lg shadow-blue-300">
+      <div className="flex flex-col items-center lg:items-start justify-center w-full lg:w-1/2 p-6 sm:p-8">
+        <h1 className="text-4xl sm:text-5xl font-bold text-blue-600 mb-4 lg:mb-6 text-center lg:text-left">
           Hour of Code 3.0
         </h1>
         <img
-          src="your-diagram-image-path.png"
+          src="amico.png"
           alt="Coding Illustration"
-          className="max-w-full max-h-full object-contain rounded-xl shadow-lg hover:scale-105 transition-transform duration-300"
+          className="w-4/5 sm:w-3/5 max-h-80 object-contain rounded-xl shadow-lg hover:scale-105 transition-transform duration-300"
+          style={{ backgroundColor: "transparent" }}
         />
       </div>
 
       {/* Right Section */}
-      <div className="flex items-center justify-center w-full lg:w-1/2 bg-gradient-to-b from-white to-gray-100 p-8 animate__animated animate__fadeInRight">
+      <div className="flex items-center justify-center w-full lg:w-1/2 p-4 sm:p-6 md:p-8">
         <form
           onSubmit={handleSubmit}
-          className="w-full max-w-md bg-white p-8 rounded-lg shadow-2xl transform transition-all duration-500 hover:scale-105 hover:shadow-2xl"
+          className="w-full max-w-sm sm:max-w-md bg-white p-6 sm:p-8 rounded-lg shadow-lg"
         >
-          <h2 className="text-3xl font-extrabold text-blue-600 mb-6 text-center">
+          <h2
+            className="text-2xl sm:text-3xl font-extrabold mb-6 text-center"
+            style={{ color: "#236397" }}
+          >
             Register
           </h2>
 
@@ -81,156 +149,181 @@ const Form = () => {
 
           {/* Full Name */}
           <div className="mb-4">
-            <label className="block font-medium mb-2">Full Name</label>
+            <label className="block font-medium mb-2" style={{ color: "#236397" }}>
+              Full Name <span className="text-red-500">*</span>
+            </label>
             <input
               type="text"
               name="fullName"
               value={formData.fullName}
               onChange={handleChange}
               required
-              className="w-full p-3 border-2 border-blue-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 transition-transform duration-300 hover:scale-105"
+              className="w-full p-1 border-2 border-blue-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 transition-transform duration-300"
             />
           </div>
 
-          {/* Roll No */}
-          <div className="mb-4">
-            <label className="block font-medium mb-2">Roll No</label>
-            <input
-              type="text"
-              name="rollNo"
-              value={formData.rollNo}
-              onChange={handleChange}
-              required
-              className="w-full p-3 border-2 border-blue-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 transition-transform duration-300 hover:scale-105"
-            />
-          </div>
-
-          {/* Student No */}
-          <div className="mb-4">
-            <label className="block font-medium mb-2">Student No</label>
-            <input
-              type="text"
-              name="studentNo"
-              value={formData.studentNo}
-              onChange={handleChange}
-              required
-              className="w-full p-3 border-2 border-blue-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 transition-transform duration-300 hover:scale-105"
-            />
+          {/* Roll No and Student No */}
+          <div className="flex flex-wrap gap-4 mb-4">
+            <div className="flex-1">
+              <label className="block font-medium mb-2" style={{ color: "#236397" }}>
+                Roll No <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                name="rollNo"
+                value={formData.rollNo}
+                onChange={handleChange}
+                required
+                className="w-full p-1 border-2 border-blue-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+              />
+            </div>
+            <div className="flex-1">
+              <label className="block font-medium mb-2" style={{ color: "#236397" }}>
+                Student No <span className="text-red-500">*</span>
+              </label>
+              <input
+                type="text"
+                name="studentNo"
+                value={formData.studentNo}
+                onChange={handleChange}
+                required
+                className="w-full p-1 border-2 border-blue-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+              />
+            </div>
           </div>
 
           {/* Email */}
           <div className="mb-4">
-            <label className="block font-medium mb-2">Email</label>
+            <label className="block font-medium mb-2" style={{ color: "#236397" }}>
+              Email <span className="text-red-500">*</span>
+            </label>
             <input
               type="email"
               name="email"
               value={formData.email}
               onChange={handleChange}
               required
-              className="w-full p-3 border-2 border-blue-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 transition-transform duration-300 hover:scale-105"
+              pattern="^[a-zA-Z0-9._%+-]+@akgec\.ac\.in$"
+              title="Email must be in the format abc@akgec.ac.in"
+              placeholder="abc@akgec.ac.in"
+              className="w-full p-1 border-2 border-blue-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
             />
           </div>
 
-         {/* Gender */}
-<div className="mb-4">
-  <label className="block font-medium mb-2">Gender</label>
-  <div className="flex space-x-4">
-    <label className="flex items-center space-x-2">
-      <input
-        type="radio"
-        name="gender"
-        value="Male"
-        checked={formData.gender === "Male"}
-        onChange={handleChange}
-        required
-        className="focus:ring-blue-600"
-      />
-      <span>Male</span>
-    </label>
-    <label className="flex items-center space-x-2">
-      <input
-        type="radio"
-        name="gender"
-        value="Female"
-        checked={formData.gender === "Female"}
-        onChange={handleChange}
-        required
-        className="focus:ring-blue-600"
-      />
-      <span>Female</span>
-    </label>
-    <label className="flex items-center space-x-2">
-      <input
-        type="radio"
-        name="gender"
-        value="Other"
-        checked={formData.gender === "Other"}
-        onChange={handleChange}
-        required
-        className="focus:ring-blue-600"
-      />
-      <span>Other's</span>
-    </label>
-  </div>
-</div>
-
-
-          {/* Branch */}
+          {/* Gender */}
           <div className="mb-4">
-            <label className="block font-medium mb-2">Branch</label>
-            <select
-              name="branch"
-              value={formData.branch}
-              onChange={handleChange}
-              required
-              className="w-full p-3 border-2 border-blue-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 transition-transform duration-300 hover:scale-105"
-            >
-              <option value="">Select</option>
-              <option value="CSIT">CSIT</option>
-              <option value="IT">IT</option>
-              <option value="CSE">CSE</option>
-              <option value="CSE-DS">CSE-DS</option>
-              <option value="CSE-AIML">CSE-AIML</option>
-              <option value="ECE">ECE</option>
-              <option value="ME">ME</option>
-            </select>
+            <label className="block font-medium mb-2" style={{ color: "#236397" }}>
+              Gender <span className="text-red-500">*</span>
+            </label>
+            <div className="flex space-x-4">
+              <label className="flex items-center space-x-2">
+                <input
+                  type="radio"
+                  name="gender"
+                  value="Male"
+                  checked={formData.gender === "Male"}
+                  onChange={handleChange}
+                  required
+                />
+                <span>Male</span>
+              </label>
+              <label className="flex items-center space-x-2">
+                <input
+                  type="radio"
+                  name="gender"
+                  value="Female"
+                  checked={formData.gender === "Female"}
+                  onChange={handleChange}
+                  required
+                />
+                <span>Female</span>
+              </label>
+              <label className="flex items-center space-x-2">
+                <input
+                  type="radio"
+                  name="gender"
+                  value="Other"
+                  checked={formData.gender === "Other"}
+                  onChange={handleChange}
+                  required
+                />
+                <span>Other's</span>
+              </label>
+            </div>
+          </div>
+          {/* Branch and Year */}
+          <div className="flex flex-wrap gap-4">
+            {[
+              {
+                name: "branch",
+                label: "Branch",
+                options: [
+                  "CSIT",
+                  "IT",
+                  "CSE",
+                  "CSE-hindi",
+                  "CSE-DS",
+                  "CSE-AIML",
+                  "ECE",
+                  "ME",
+                  "Civil",
+                ],
+              },
+              {
+                name: "year",
+                label: "Year",
+                options: ["2nd Year", "3rd Year", "4th Year"],
+              },
+            ].map((field) => (
+              <div className="flex-1 mb-4" key={field.name}>
+                <label
+                  className="block font-medium mb-2"
+                  style={{ color: "#236397" }}
+                >
+                  {field.label} <span className="text-red-500">*</span>
+                </label>
+                <select
+                  name={field.name}
+                  value={formData[field.name]}
+                  onChange={handleChange}
+                  required
+                  className="w-full p-1 border-2 border-blue-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
+                >
+                  <option value="">Select</option>
+                  {field.options.map((option) => (
+                    <option key={option} value={option}>
+                      {option}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            ))}
           </div>
 
-          {/* Year */}
           <div className="mb-4">
-            <label className="block font-medium mb-2">Year</label>
-            <select
-              name="year"
-              value={formData.year}
-              onChange={handleChange}
-              required
-              className="w-full p-3 border-2 border-blue-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 transition-transform duration-300 hover:scale-105"
-            >
-              <option value="">Select Year</option>
-              <option value="1st Year">1st Year</option>
-              <option value="2nd Year">2nd Year</option>
-              <option value="3rd Year">3rd Year</option>
-            </select>
-          </div>
-
-          {/* HackerRank ID */}
-          <div className="mb-4">
-            <label className="block font-medium mb-2">HackerRank ID</label>
+            <label className="block font-medium mb-2" style={{ color: "#236397" }}>
+              HackerID <span className="text-red-500">*</span>
+            </label>
             <input
               type="text"
-              name="hackerRankId"
-              value={formData.hackerRankId}
+              name="hackerid"
+              value={formData.hackerid}
               onChange={handleChange}
               required
-              className="w-full p-3 border-2 border-blue-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600 transition-transform duration-300 hover:scale-105"
+              placeholder="Enter your HackerID"
+              className="w-full p-1 border-2 border-blue-400 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-600"
             />
           </div>
 
+          {/* Submit Button */}
           <button
             type="submit"
-            className="w-full bg-gradient-to-r from-blue-500 to-blue-700 text-white py-3 rounded-lg hover:shadow-lg hover:scale-105 transition-transform duration-300"
+            disabled={isSubmitting}
+            className={`w-full bg-gradient-to-r from-blue-500 to-blue-700 text-white py-3 rounded-lg ${
+              isSubmitting ? "opacity-50 cursor-not-allowed" : "hover:shadow-lg hover:scale-105"
+            } transition-transform duration-300`}
           >
-            Register
+            {isSubmitting ? "Registering..." : "Register"}
           </button>
         </form>
       </div>
